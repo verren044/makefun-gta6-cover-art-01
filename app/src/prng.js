@@ -1,22 +1,22 @@
-// Seeded randomness for Vice Coast Cover Studio. Every visual that looks
-// random — grain, halftone dots, skyline buildings, palm placement — is drawn
-// from a mulberry32 stream seeded by the cover's own settings, so the same
-// title, layout, grade and panel crops always paint the exact same cover.
+// Seeded PRNG for Vice Coast Cover Studio.
+// Every random-looking choice in a cover (grain, windows, palms, halftone)
+// derives from the cover settings string, so the same cover repaints
+// identically on every load and every export.
 
-/** FNV-1a hash of a string, returned as an unsigned 32-bit seed. */
-export function hashSeed(text) {
+export function hashString(str) {
+  // FNV-1a 32-bit over UTF-16 code units; small, fast, deterministic.
   let h = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
     h = Math.imul(h, 0x01000193);
   }
   return h >>> 0;
 }
 
-/** Deterministic PRNG stream: mulberry32. */
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return function next() {
+    a |= 0;
     a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
@@ -24,12 +24,16 @@ export function mulberry32(seed) {
   };
 }
 
-/** Seed string for a whole cover: title, layout, grade, size and panel crops. */
-export function coverSeed(state, width, height) {
-  const crops = state.slots
-    .map((s) => `${s.photo ?? -1}:${s.zoom.toFixed(3)}:${s.ox.toFixed(3)}:${s.oy.toFixed(3)}`)
-    .join('|');
-  return hashSeed(
-    `${state.title}\n${state.subtitle}\n${state.badge}\n${state.layout}\n${state.grade}\n${state.heat}\n${width}x${height}\n${crops}`,
-  );
+export function rngFromString(str) {
+  return mulberry32(hashString(str));
+}
+
+// Deterministic pick: same seed string always returns the same element.
+export function pick(rng, arr) {
+  return arr[Math.floor(rng() * arr.length)];
+}
+
+// Deterministic range helper, inclusive of min, exclusive of max.
+export function range(rng, min, max) {
+  return min + rng() * (max - min);
 }

@@ -1,74 +1,84 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Coast Cover Studio — GTA-style cover art maker</title>
-<link rel="stylesheet" href="./style.css">
+<title>Vice Coast Cover Studio</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls" aria-label="Cover controls">
-    <h1>Vice Coast <span>Cover Studio</span></h1>
-    <p class="tagline">Turn your photos into a Vice City-style poster. Pick a layout, a grade, write your title — export a PNG to post.</p>
-
-    <div class="group">
-      <h2>1 · Photos</h2>
-      <label class="file-label">Add your photos
-        <input id="photoFiles" type="file" accept="image/*" multiple>
-      </label>
-      <button id="loadSamples" type="button" class="ghost">Use the two sample photos</button>
-      <p class="hint">Photos stay on your machine — nothing is uploaded.</p>
-      <div id="slotPickers" class="slot-pickers"></div>
-    </div>
-
-    <div class="group">
-      <h2>2 · Layout</h2>
-      <div id="layouts" class="chips"></div>
-    </div>
-
-    <div class="group">
-      <h2>3 · Grade</h2>
-      <div id="grades" class="swatches"></div>
-    </div>
-
-    <div class="group">
-      <h2>4 · Words</h2>
-      <label>Title <input id="title" type="text" maxlength="24" value="VICE COAST"></label>
-      <label>Subtitle <input id="subtitle" type="text" maxlength="40" value="Sunset Heist"></label>
-      <label>Badge <input id="badge" type="text" maxlength="16" value="VICE CITY"></label>
-      <label>Heat meter <span id="heatVal">4 / 5</span>
-        <input id="heat" type="range" min="0" max="5" step="1" value="4">
-      </label>
-    </div>
-
-    <div class="group">
-      <h2>5 · Panel <span id="panelName">1</span> crop</h2>
-      <div id="slotTabs" class="slot-tabs"></div>
-      <label>Zoom <span id="zoomVal">100%</span>
-        <input id="zoom" type="range" min="1" max="3" step="0.01" value="1">
-      </label>
-      <label>Pan left–right <input id="panX" type="range" min="-50" max="50" step="1" value="0"></label>
-      <label>Pan up–down <input id="panY" type="range" min="-50" max="50" step="1" value="0"></label>
-      <p class="hint">Or drag directly on the preview to pan the photo inside its panel.</p>
-    </div>
-
-    <div class="group">
-      <h2>6 · Export</h2>
-      <label>Size <select id="exportSize"></select></label>
-      <div class="row">
-        <button id="export" type="button" class="primary">Export PNG</button>
-        <button id="shuffle" type="button" class="ghost">Surprise me</button>
+<header>
+  <h1>VICE COAST COVER STUDIO</h1>
+  <p>Turn your photos and a caption into GTA 6-style cover art. Everything runs offline in your browser — photos never leave your machine.</p>
+</header>
+<main>
+  <section class="preview-wrap">
+    <canvas id="preview" width="960" height="540"></canvas>
+    <p class="note">Drag on the preview to pan the selected panel's photo. Pick a panel, then fine-tune it with the zoom and pan sliders.</p>
+  </section>
+  <aside class="controls">
+    <div class="field">
+      <h2>Photos</h2>
+      <input type="file" id="file-input" accept="image/*" multiple>
+      <div class="row" style="margin-top: 8px;">
+        <button class="action" type="button" data-sample="samples/boulevard.jpg">Boulevard sample</button>
+        <button class="action" type="button" data-sample="samples/pier.jpg">Pier sample</button>
       </div>
-      <p id="status" role="status"></p>
     </div>
-  </section>
-
-  <section class="preview" aria-label="Cover preview">
-    <canvas id="cover" width="1080" height="1080"></canvas>
-    <p class="preview-note">Live preview — what you see is the PNG you export.</p>
-  </section>
+    <div class="field">
+      <h2>Layout</h2>
+      <div class="picker">
+        <button type="button" data-layout="hero3" class="active">Hero + 3 strip</button>
+        <button type="button" data-layout="four">Four Panel</button>
+        <button type="button" data-layout="bleed">Full Bleed</button>
+        <button type="button" data-layout="snapshots">Snapshots</button>
+      </div>
+    </div>
+    <div class="field">
+      <h2>Grade</h2>
+      <div class="picker">
+        <button type="button" data-grade="sunset" class="active">Vice Sunset</button>
+        <button type="button" data-grade="neon">Neon Night</button>
+        <button type="button" data-grade="gold">Palm Gold</button>
+        <button type="button" data-grade="teal">Teal Dusk</button>
+        <button type="button" data-grade="noir">Noir</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="title-input">Title</label>
+      <input type="text" id="title-input" value="VICE COAST" maxlength="24">
+    </div>
+    <div class="field">
+      <label for="subtitle-input">Subtitle</label>
+      <input type="text" id="subtitle-input" value="Sunset Boulevard" maxlength="40">
+    </div>
+    <div class="field">
+      <label for="badge-input">Badge text</label>
+      <input type="text" id="badge-input" value="VICE CITY" maxlength="16">
+    </div>
+    <div class="field">
+      <label for="heat-input">Heat (0–5 stars)</label>
+      <input type="number" id="heat-input" min="0" max="5" step="1" value="5">
+    </div>
+    <div class="field">
+      <h2>Selected panel</h2>
+      <div class="slider-row"><span>Panel</span><input type="range" id="panel-input" min="0" max="3" step="1" value="0"></div>
+      <div class="slider-row"><span>Zoom</span><input type="range" id="zoom-input" min="1" max="2.5" step="0.05" value="1"></div>
+      <div class="slider-row"><span>Pan X</span><input type="range" id="panx-input" min="-1" max="1" step="0.05" value="0"></div>
+      <div class="slider-row"><span>Pan Y</span><input type="range" id="pany-input" min="-1" max="1" step="0.05" value="0"></div>
+    </div>
+    <div class="field">
+      <h2>Export PNG</h2>
+      <div class="row">
+        <button class="action primary" type="button" data-export="1080x1080">1080 × 1080</button>
+        <button class="action primary" type="button" data-export="1080x1350">1080 × 1350</button>
+        <button class="action primary" type="button" data-export="1920x1080">1920 × 1080</button>
+      </div>
+    </div>
+    <p class="note">Fonts Anton and Pacifico are bundled under app/fonts under the SIL Open Font License. Sample photos are original illustrations drawn in code — no Rockstar artwork, logos or fonts are used.</p>
+  </aside>
 </main>
-<script type="module" src="./src/main.js"></script>
+<script type="module" src="src/main.js"></script>
+<script type="module" src="src/shots.js"></script>
 </body>
 </html>
